@@ -7,8 +7,7 @@
 #     Ana Virginia Giambona Díaz (alu0101322650)
 #     Pablo Pérez González (alu0101318318)
 
+import dependencias
 
-
-
-
+dependencias.substraccionFondo()
 
