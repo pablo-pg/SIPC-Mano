@@ -9,5 +9,4 @@
 
 import dependencias
 
-dependencias.substraccionFondo()
-
+dependencias.convDefects()
