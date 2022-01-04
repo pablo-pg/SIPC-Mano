@@ -5,7 +5,9 @@ import math
 cap = cv2.VideoCapture(0)
 backSub = cv2.createBackgroundSubtractorMOG2(detectShadows = True)
 image = cv2.imread('media/hand.JPG')
-gray = cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
+# Convertir imagen en escala de grises
+gray = cv2.cvtColor(image,cv2.COLOR_RGB2GRAY) 
+# Pasa los pixeles que esten por encima de 127 los pasa a 255 y el resto a 0
 ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
 
 
@@ -28,9 +30,10 @@ def abrirCamara():
 	if not cap.isOpened:
 		print ("Unable to open cam")
 		exit(0)
-
 	while (True):
 		ret,frame=cap.read()
+		generarCuadrado(cap)
+		# substraccionFondo(cap)
 		if not ret:
 			exit(0)
 		cv2.imshow('frame',frame)
@@ -43,29 +46,57 @@ def abrirCamara():
 
 
 
-def generarCuadrado():
+
+def abrirVideo(video :str):
+	cap = cv2.VideoCapture(video)
+	if not cap.isOpened:
+		print ("Unable to open file")
+		exit(0)
+	while (True):
+		ret,frame=cap.read()
+		generarCuadrado(cap)
+		if not ret:
+			exit(0)
+		cv2.imshow('frame',frame)
+		keyboard = cv2.waitKey(40)
+		if keyboard & 0xFF == ord('q'):
+			break
+
+	cap.release()
+	# cap = cv2.VideoCapture(0)
+	cv2.destroyAllWindows()
+
+
+
+def generarCuadrado(cap):
 	if not cap.isOpened:
 		print ("Unable to open file")
 		exit(0)
 	pt1 = (400,100)
 	pt2 = (600,300)
 
+	learning_rate = -1
 	while (True):
 		ret,frame=cap.read()
 		if not ret:
 			exit(0)
 		
-		frame = cv2.flip(frame,1)
-		
 		roi = frame[pt1[1]:pt2[1],pt1[0]:pt2[0],:].copy()
-
 		cv2.rectangle(frame,pt1,pt2,(255,0,0))
 		cv2.imshow('frame',frame)
 		cv2.imshow('ROI',roi)
 
-		keyboard = cv2.waitKey(40)
+		fgMask = backSub.apply(roi,learningRate=learning_rate)
+		cv2.imshow('Foreground Mask',fgMask)
+
+		keyboard = cv2.waitKey(1)
+		print(learning_rate)
 		if keyboard & 0xFF == ord('q'):
 			break
+		elif keyboard & 0xFF == ord('s'):
+			learning_rate = 0
+		elif keyboard & 0xFF == ord('a'):
+			learning_rate = -1
 
 	cap.release()
 	cv2.destroyAllWindows()
@@ -100,28 +131,7 @@ def crearVideo():
 
 
 
-def abrirVideo(video :str):
-	cap = cv2.VideoCapture(video)
-	if not cap.isOpened:
-		print ("Unable to open file")
-		exit(0)
-
-	while (True):
-		ret,frame=cap.read()
-		if not ret:
-			exit(0)
-		cv2.imshow('frame',frame)
-		keyboard = cv2.waitKey(40)
-		if keyboard & 0xFF == ord('q'):
-			break
-
-	cap.release()
-	cap = cv2.VideoCapture(0)
-	cv2.destroyAllWindows()
-
-
-
-def substraccionFondo():
+def substraccionFondo(cap):
 	learning_rate = -1
 	if not cap.isOpened:
 		print ("Unable to open cam")
@@ -134,11 +144,10 @@ def substraccionFondo():
 		fgMask = backSub.apply(frame,learningRate=learning_rate)
 		cv2.imshow('frame',frame)
 		cv2.imshow('Foreground Mask',fgMask)
-
 		keyboard = cv2.waitKey(1)
 		if keyboard & 0xFF == ord('q'):
 			break
-		elif keyboard & 0xFF == ord('s'):
+		if keyboard & 0xFF == ord('s'):
 			learning_rate = 0
 
 	cap.release()
@@ -146,27 +155,25 @@ def substraccionFondo():
 
 
 
-def contornos():
-  contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-  cv2.drawContours(image, contours, -1, (0,255,0),3)
-
-  cv2.imshow('Contours',image)
-
-  keyboard = cv2.waitKey(0)
-
-  cv2.destroyAllWindows()
+def contornos(frame):
+	# llamamos findContours con la imagen en blanco y negro 
+	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+	# Pinta el contarno detectado
+	cv2.drawContours(frame, contours, -1, (0,255,0),3)
+	# Mostramos el contarno
+	cv2.imshow('Contours',frame)
+	keyboard = cv2.waitKey(0)
+	cv2.destroyAllWindows()
 
 
 
 # La malla convexa incluye el contorno
-def mallaConvexa():
+def mallaConvexa(frame):
   contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
   cv2.drawContours(image, contours, -1, (0,255,0),3)
-
   hull = cv2.convexHull(contours[0])
   cv2.drawContours(image, [hull], 0, (255,0,0),3)
   cv2.imshow('Contours',image)
-
   keyboard = cv2.waitKey(0)
 
   cv2.destroyAllWindows()
@@ -174,32 +181,27 @@ def mallaConvexa():
 
 
 # También incluye el contorno
-def boundingRect():
+def boundingRect(frame):
   contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
   cv2.drawContours(image, contours, -1, (0,255,0),3)
   rect = cv2.boundingRect(contours[0])
   pt1 = (rect[0],rect[1])
   pt2 = (rect[0]+rect[2],rect[1]+rect[3])
-
   cv2.rectangle(image,pt1,pt2,(0,0,255),3)
-
   cv2.imshow('Contours',image)
-
   keyboard = cv2.waitKey(0)
-
   cv2.destroyAllWindows()
 
 
 
 # Incluye el contorno y la malla convexa
-def convDefects():
+def convDefects(frame):
 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-	cv2.drawContours(image, contours, -1, (0,255,0),3)
+	cv2.drawContours(frame, contours, -1, (0,255,0),3)
 
 	cnt = contours[0]
 	hull = cv2.convexHull(cnt,returnPoints = False)
 	defects = cv2.convexityDefects(cnt,hull)
-
 	for i in range(len(defects)):
 			s,e,f,d = defects[i,0]
 			start = tuple(cnt[s][0])
@@ -208,11 +210,13 @@ def convDefects():
 			depth = d/256.0
 			print(depth)
 			ang = angle(start,end,far)
-			cv2.line(image,start,end,[255,0,0],2)
-			cv2.circle(image,far,5,[0,0,255],-1)
+			cv2.line(frame,start,end,[255,0,0],2)
+			cv2.circle(frame,far,5,[0,0,255],-1)
 
-	cv2.imshow('Contours',image)
+	cv2.imshow('Contours',frame)
 
-	keyboard = cv2.waitKey(0)
+	keyboard = cv2.waitKey(40)
+	if keyboard & 0xFF == ord('q'):
+		cv2.destroyAllWindows()
+		
 
-	cv2.destroyAllWindows()
