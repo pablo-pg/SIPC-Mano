@@ -86,7 +86,9 @@ def generarCuadrado(cap):
 		# cv2.imshow('ROI',roi)
 		fgMask = backSub.apply(roi,learningRate=learning_rate)
 		cv2.imshow('Foreground Mask',fgMask)
-		mallaConvexa(roi, fgMask)
+		# mallaConvexa(roi, fgMask)
+		# boundingRect(roi)
+		convDefects(roi)
 
 		keyboard = cv2.waitKey(1)
 		if keyboard & 0xFF == ord('q'):
@@ -155,14 +157,14 @@ def contornos(frame):
 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
 	# Pinta el contarno detectado
 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
-	# Mostramos el contarno
+	# Mostramos el contorno
 	cv2.imshow('Contours',frame)
 
 
 
 # La malla convexa incluye el contorno
 def mallaConvexa(frame, fgMask):
-	gray = cv2.cvtColor(fgMask,cv2.COLOR_RGB2GRAY)
+	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
@@ -176,15 +178,17 @@ def mallaConvexa(frame, fgMask):
 
 # También incluye el contorno
 def boundingRect(frame):
-  contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-  cv2.drawContours(image, contours, -1, (0,255,0),3)
-  rect = cv2.boundingRect(contours[0])
-  pt1 = (rect[0],rect[1])
-  pt2 = (rect[0]+rect[2],rect[1]+rect[3])
-  cv2.rectangle(image,pt1,pt2,(0,0,255),3)
-  cv2.imshow('Contours',image)
-  keyboard = cv2.waitKey(0)
-  cv2.destroyAllWindows()
+	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
+	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
+	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+	cv2.drawContours(frame, contours, -1, (0,255,0),3)
+	rect = cv2.boundingRect(contours[0])
+	pt1 = (rect[0],rect[1])
+	pt2 = (rect[0]+rect[2],rect[1]+rect[3])
+	cv2.rectangle(frame,pt1,pt2,(0,0,255),3)
+	cv2.imshow('Contours',frame)
+	# keyboard = cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
 
 
@@ -194,21 +198,21 @@ def convDefects(frame):
 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
-
 	cnt = contours[0]
-	print(contours[0])
-	hull = cv2.convexHull(cnt,returnPoints = False)
-	defects = cv2.convexityDefects(cnt,hull)
-	for i in range(len(defects)):
-			s,e,f,d = defects[i,0]
-			start = tuple(cnt[s][0])
-			end = tuple(cnt[e][0])
-			far = tuple(cnt[f][0])
-			depth = d/256.0
-			print(depth)
-			ang = angle(start,end,far)
-			cv2.line(image,start,end,[255,0,0],2)
-			cv2.circle(image,far,5,[0,0,255],-1)
+	hull = cv2.convexHull(cnt, returnPoints=False)
+	defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
+	if defects.__class__ == np.ndarray:
+		# print('a')
+		for i in range(len(defects)):
+				s,e,f,d = defects[i,0]
+				start = tuple(cnt[s][0])
+				end = tuple(cnt[e][0])
+				far = tuple(cnt[f][0])
+				depth = d/256.0
+				print(depth)
+				ang = angle(start,end,far)
+				cv2.line(frame,start,end,[255,0,0],2)
+				cv2.circle(frame,far,5,[0,0,255],-1)
 
 	cv2.imshow('Contours',frame)
 
