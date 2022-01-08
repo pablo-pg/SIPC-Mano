@@ -193,11 +193,12 @@ def boundingRect(frame):
 
 # Incluye el contorno y la malla convexa
 def convDefects(frame, fgmask):
-	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
-	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
-	bw = cv2.blur(bw, (8,8))
+	# gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
+	# ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
+	# bw = cv2.blur(bw, (8,8))
 	contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
+	print(contours)
 	if (len(contours) > 0):
 		cnt = contours[0]
 		hull = cv2.convexHull(cnt, returnPoints=False)
