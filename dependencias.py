@@ -13,16 +13,16 @@ ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
 
 
 def angle(s,e,f):
-    v1 = [s[0]-f[0],s[1]-f[1]]
-    v2 = [e[0]-f[0],e[1]-f[1]]
-    ang1 = math.atan2(v1[1],v1[0])
-    ang2 = math.atan2(v2[1],v2[0])
-    ang = ang1 - ang2
-    if (ang > np.pi):
-        ang -= 2*np.pi
-    if (ang < -np.pi):
-        ang += 2*np.pi
-    return ang*180/np.pi
+		v1 = [s[0]-f[0],s[1]-f[1]]
+		v2 = [e[0]-f[0],e[1]-f[1]]
+		ang1 = math.atan2(v1[1],v1[0])
+		ang2 = math.atan2(v2[1],v2[0])
+		ang = ang1 - ang2
+		if (ang > np.pi):
+			ang -= 2*np.pi
+		if (ang < -np.pi):
+			ang += 2*np.pi
+		return ang*180/np.pi
 
 
 
@@ -88,7 +88,7 @@ def generarCuadrado(cap):
 		cv2.imshow('Foreground Mask',fgMask)
 		# mallaConvexa(roi, fgMask)
 		# boundingRect(roi)
-		convDefects(roi)
+		convDefects(roi, fgMask)
 
 		keyboard = cv2.waitKey(1)
 		if keyboard & 0xFF == ord('q'):
@@ -191,33 +191,38 @@ def boundingRect(frame):
 	# cv2.destroyAllWindows()
 
 
-
 # Incluye el contorno y la malla convexa
-def convDefects(frame):
+def convDefects(frame, fgmask):
 	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
-	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+	bw = cv2.blur(bw, (8,8))
+	contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
-	cnt = contours[0]
-	hull = cv2.convexHull(cnt, returnPoints=False)
-	defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
-	if defects.__class__ == np.ndarray:
-		# print('a')
-		for i in range(len(defects)):
+	if (len(contours) > 0):
+		cnt = contours[0]
+		hull = cv2.convexHull(cnt, returnPoints=False)
+		defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
+		if defects.__class__ == np.ndarray:
+			# print('a')
+			for i in range(len(defects)):
 				s,e,f,d = defects[i,0]
 				start = tuple(cnt[s][0])
 				end = tuple(cnt[e][0])
 				far = tuple(cnt[f][0])
 				depth = d/256.0
-				print(depth)
+				# print(depth)
 				ang = angle(start,end,far)
+				finger_cnt = 0
+				if ang <= np.pi / 2:  		# angle less than 90 degree, treat as fingers
+					finger_cnt += 1
+					cv2.circle(frame, far, 4, [0, 0, 255], -1)
+				if finger_cnt > 0:
+					finger_cnt = finger_cnt + 1
+					cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
 				cv2.line(frame,start,end,[255,0,0],2)
 				cv2.circle(frame,far,5,[0,0,255],-1)
 
 	cv2.imshow('Contours',frame)
 
-	# keyboard = cv2.waitKey(40)
-	# if keyboard & 0xFF == ord('q'):
-	# 	cv2.destroyAllWindows()
 		
 
