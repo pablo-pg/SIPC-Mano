@@ -169,31 +169,6 @@ def substraccionFondo(cap):
 
 
 
-# def contornos(frame):
-# 	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
-# 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
-# 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-# 	# Pinta el contarno detectado
-# 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
-# 	# Mostramos el contorno
-# 	cv2.imshow('Contours',frame)
-
-
-
-# La malla convexa incluye el contorno
-# def mallaConvexa(frame, fgMask):
-# 	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
-# 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
-# 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-# 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
-# 	hull = cv2.convexHull(contours[0])
-# 	cv2.drawContours(frame, [hull], 0, (255,0,0),3)
-# 	cv2.imshow('Contours',frame)
-#   # keyboard = cv2.waitKey(0)
-#   # cv2.destroyAllWindows()
-
-
-
 # Tambien incluye el contorno
 def boundingRect(frame):
 	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
@@ -222,7 +197,6 @@ def convDefects(frame, fgmask):
 				max = np.copy(i)
 		cnt = np.copy(max)
 		cv2.drawContours(frame, [cnt], -1, (0,255,0),3)
-		# print(contours)
 		rect = cv2.boundingRect(cnt)
 		pt1 = (rect[0],rect[1])
 		pt2 = (rect[0]+rect[2],rect[1]+rect[3])
@@ -239,21 +213,15 @@ def convDefects(frame, fgmask):
 					far = tuple(cnt[f][0])
 					depth = d/256.0
 					ang = angle(start,end,far)
-					# print(depth)
-					# print(pt2)q
 					vertical_size = (pt2[1] - pt1[1])
 					horizontal_size = (pt2[0] - pt1[0])
-					# print(f'vertical {vertical_size}')
-					# print(f'horizontal {horizontal_size}')
 					# Hay que tener en cuenta la profundidad. La profundidad es por asi decirlo el largo de los dedos
 					if  5 <= ang and ang <= 90:  		# Un dedo es aquello mayor de 5 grados y menor de 90
 						# print('DEDO')
 						if depth > vertical_size / 5:
-						# if depth < 9999999999:
 							finger_cnt += 1
 							cv2.circle(frame, far, 4, [0, 0, 255], -1)
 						elif depth > horizontal_size / 9:
-						# if depth < 9999999999:
 							finger_cnt += 1
 							cv2.circle(frame, far, 4, [0, 0, 255], -1)
 				if finger_cnt > 0:
