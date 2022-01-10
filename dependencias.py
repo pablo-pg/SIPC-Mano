@@ -13,6 +13,35 @@ ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
 
 
 
+def checkOrder(list):
+	ordered = True
+	for i in range(len(list)):
+		if i > 0:
+			# print(f'Comparo {list[i]} con {list[i-1]}')
+			if list[i] > list[i - 1]:
+				ordered = False
+	return ordered
+
+def mysort(list):
+	print(f' TAMAÑO {len(list[1])} y esta ordenado? {checkOrder(list)}')
+	while not checkOrder(list):
+		for iter_num in range(len(list)-1,0,-1):
+			for idx in range(iter_num):
+				if list[idx] < list[idx + 1]:
+					temp = np.ndarray(list[idx].shape,list[idx].dtype, list[idx].T, strides=list[idx].strides)
+					# temp = list[idx]
+					# print(f'tipo aux : {temp}')
+					temp = list[idx].copy()
+					list[idx] = list[idx+1]
+					list[idx+1] = temp
+					# print(f'temp list = {list}')
+	return list
+
+
+
+
+
+
 def angle(s,e,f):
 		v1 = [s[0]-f[0],s[1]-f[1]]
 		v2 = [e[0]-f[0],e[1]-f[1]]
@@ -205,7 +234,10 @@ def convDefects(frame, fgmask):
 		# print(contours)
 		if (len(cnt) > 4):
 			hull = cv2.convexHull(cnt, returnPoints=False)
-			hull.sort() 
+			print(f'hull antes: {hull}')
+			# hull.sort()
+			mysort(hull)
+			print(f'hull despues: {hull}')
 			time.sleep(0.05)
 			defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
 			if defects.__class__ == np.ndarray:
@@ -222,10 +254,10 @@ def convDefects(frame, fgmask):
 						print('DEDO')
 						finger_cnt += 1
 						cv2.circle(frame, far, 4, [0, 0, 255], -1)
-					# if finger_cnt > 0:
-					finger_cnt = finger_cnt + 0
+					if finger_cnt > 0:
+						finger_cnt = finger_cnt + 1
 					cv2.line(frame,start,end,[255,0,0],2)
-						cv2.circle(frame,far,5,[0,0,255],-1)
+					cv2.circle(frame,far,5,[0,0,255],-1)
 
 				print('Dedos: ', finger_cnt)
 	cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
