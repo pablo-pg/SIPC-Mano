@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import time
 import math
 
 cap = cv2.VideoCapture(0)
@@ -46,7 +47,7 @@ def abrirCamara():
 
 
 
-def abrirVideo(video :str):
+def abrirVideo(video):
 	cap = cv2.VideoCapture(video)
 	if not cap.isOpened:
 		print ("Unable to open file")
@@ -176,7 +177,7 @@ def mallaConvexa(frame, fgMask):
 
 
 
-# También incluye el contorno
+# Tambien incluye el contorno
 def boundingRect(frame):
 	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
@@ -193,35 +194,43 @@ def boundingRect(frame):
 
 # Incluye el contorno y la malla convexa
 def convDefects(frame, fgmask):
-	# gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
-	# ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
-	# bw = cv2.blur(bw, (8,8))
+	# fgmask = cv2.blur(fgmask, (8,8))
 	contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-	cv2.drawContours(frame, contours, -1, (0,255,0),3)
-	print(contours)
-	if (len(contours) > 0):
-		cnt = contours[0]
-		hull = cv2.convexHull(cnt, returnPoints=False)
-		defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
-		if defects.__class__ == np.ndarray:
-			# print('a')
-			for i in range(len(defects)):
-				s,e,f,d = defects[i,0]
-				start = tuple(cnt[s][0])
-				end = tuple(cnt[e][0])
-				far = tuple(cnt[f][0])
-				depth = d/256.0
-				# print(depth)
-				ang = angle(start,end,far)
-				finger_cnt = 0
-				if ang <= np.pi / 2:  		# angle less than 90 degree, treat as fingers
-					finger_cnt += 1
-					cv2.circle(frame, far, 4, [0, 0, 255], -1)
-				if finger_cnt > 0:
-					finger_cnt = finger_cnt + 1
-					cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
-				cv2.line(frame,start,end,[255,0,0],2)
-				cv2.circle(frame,far,5,[0,0,255],-1)
+	print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+	if (len(contours) > 1):
+		max = np.copy(contours[0]) 
+		for i in contours:
+			if (len(i) > len(max)):
+				max = np.copy(i)
+		print(len(max))
+		contours = [max]
+		cv2.drawContours(frame, contours, -1, (0,255,0),3)
+		# print(contours)
+		if (len(contours[0]) > 4):
+			cnt = contours[0]
+			hull = cv2.convexHull(cnt, returnPoints=False)
+			hull.sort()
+			time.sleep(0.05)
+			defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
+			if defects.__class__ == np.ndarray:
+				# print('a')
+				for i in range(len(defects)):
+					s,e,f,d = defects[i,0]
+					start = tuple(cnt[s][0])
+					end = tuple(cnt[e][0])
+					far = tuple(cnt[f][0])
+					depth = d/256.0
+					# print(depth)
+					ang = angle(start,end,far)
+					finger_cnt = 0
+					if ang <= np.pi / 2:  		# angle less than 90 degree, treat as fingers
+						finger_cnt += 1
+						cv2.circle(frame, far, 4, [0, 0, 255], -1)
+					if finger_cnt > 0:
+						finger_cnt = finger_cnt + 1
+						cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
+					cv2.line(frame,start,end,[255,0,0],2)
+					cv2.circle(frame,far,5,[0,0,255],-1)
 
 	cv2.imshow('Contours',frame)
 
