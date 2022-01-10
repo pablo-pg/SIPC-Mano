@@ -84,11 +84,8 @@ def generarCuadrado(cap):
 		roi = frame[pt1[1]:pt2[1],pt1[0]:pt2[0],:].copy()
 		cv2.rectangle(frame,pt1,pt2,(255,0,0))
 		cv2.imshow('frame',frame)
-		# cv2.imshow('ROI',roi)
 		fgMask = backSub.apply(roi,learningRate=learning_rate)
 		cv2.imshow('Foreground Mask',fgMask)
-		# mallaConvexa(roi, fgMask)
-		# boundingRect(roi)
 		convDefects(roi, fgMask)
 
 		keyboard = cv2.waitKey(1)
@@ -202,16 +199,21 @@ def convDefects(frame, fgmask):
 		for i in contours:
 			if (len(i) > len(max)):
 				max = np.copy(i)
-		print(len(max))
-		contours = [max]
-		cv2.drawContours(frame, contours, -1, (0,255,0),3)
+		cnt = np.copy(max)
+		cv2.drawContours(frame, [cnt], -1, (0,255,0),3)
 		# print(contours)
-		if (len(contours[0]) > 4):
-			cnt = contours[0]
+		# print('a')
+		if (len(cnt) > 4):
+			# print('b')
+			# cnt = contours[0]
+			# print('c')
 			hull = cv2.convexHull(cnt, returnPoints=False)
-			hull.sort()
-			time.sleep(0.05)
+			# print('d')
+			hull.sort(True) 
+			# time.sleep(0.05)
+			# print('e')
 			defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
+			print('f')
 			if defects.__class__ == np.ndarray:
 				# print('a')
 				for i in range(len(defects)):
@@ -219,18 +221,20 @@ def convDefects(frame, fgmask):
 					start = tuple(cnt[s][0])
 					end = tuple(cnt[e][0])
 					far = tuple(cnt[f][0])
+					print('aa')
 					depth = d/256.0
-					# print(depth)
+					print('bb')
 					ang = angle(start,end,far)
-					finger_cnt = 0
-					if ang <= np.pi / 2:  		# angle less than 90 degree, treat as fingers
-						finger_cnt += 1
-						cv2.circle(frame, far, 4, [0, 0, 255], -1)
-					if finger_cnt > 0:
-						finger_cnt = finger_cnt + 1
-						cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
-					cv2.line(frame,start,end,[255,0,0],2)
-					cv2.circle(frame,far,5,[0,0,255],-1)
+					# print(ang)
+					# finger_cnt = 0
+					# if  5 * np.pi / 180.0 <= ang and ang <= np.pi / 2:  		# Un dedo es aquello mayor de 5 grados y menor de 90
+					# 	finger_cnt += 1
+					# 	cv2.circle(frame, far, 4, [0, 0, 255], -1)
+					# # if finger_cnt > 0:
+					# finger_cnt = finger_cnt + 0
+					# cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
+					# cv2.line(frame,start,end,[255,0,0],2)
+					# cv2.circle(frame,far,5,[0,0,255],-1)
 
 	cv2.imshow('Contours',frame)
 
