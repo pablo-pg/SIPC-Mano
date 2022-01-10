@@ -192,6 +192,7 @@ def boundingRect(frame):
 # Incluye el contorno y la malla convexa
 def convDefects(frame, fgmask):
 	# fgmask = cv2.blur(fgmask, (8,8))
+	finger_cnt = 0
 	contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
 	print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
 	if (len(contours) > 1):
@@ -204,10 +205,9 @@ def convDefects(frame, fgmask):
 		# print(contours)
 		if (len(cnt) > 4):
 			hull = cv2.convexHull(cnt, returnPoints=False)
-			hull.sort(True) 
-			# time.sleep(0.05)
+			hull.sort() 
+			time.sleep(0.05)
 			defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
-			print('f')
 			if defects.__class__ == np.ndarray:
 				for i in range(len(defects)):
 					s,e,f,d = defects[i,0]
@@ -216,17 +216,19 @@ def convDefects(frame, fgmask):
 					far = tuple(cnt[f][0])
 					depth = d/256.0
 					ang = angle(start,end,far)
-					# print(ang)
-					finger_cnt = 0
-					if  5 * np.pi / 180.0 <= ang and ang <= np.pi / 2:  		# Un dedo es aquello mayor de 5 grados y menor de 90
+					print(ang)
+					# Hay que tener en cuenta la profundidad. La profundidad es por asi decirlo el largo de los dedos
+					if  5 <= ang and ang <= 90:  		# Un dedo es aquello mayor de 5 grados y menor de 90
+						print('DEDO')
 						finger_cnt += 1
 						cv2.circle(frame, far, 4, [0, 0, 255], -1)
 					# if finger_cnt > 0:
 					finger_cnt = finger_cnt + 0
-					cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
 					cv2.line(frame,start,end,[255,0,0],2)
-					cv2.circle(frame,far,5,[0,0,255],-1)
+						cv2.circle(frame,far,5,[0,0,255],-1)
 
+				print('Dedos: ', finger_cnt)
+	cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
 	cv2.imshow('Contours',frame)
 
 		
