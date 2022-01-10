@@ -221,20 +221,20 @@ def convDefects(frame, fgmask):
 					start = tuple(cnt[s][0])
 					end = tuple(cnt[e][0])
 					far = tuple(cnt[f][0])
-					print('aa')
+					# print('aa')
 					depth = d/256.0
-					print('bb')
+					# print('bb')
 					ang = angle(start,end,far)
 					# print(ang)
-					# finger_cnt = 0
-					# if  5 * np.pi / 180.0 <= ang and ang <= np.pi / 2:  		# Un dedo es aquello mayor de 5 grados y menor de 90
-					# 	finger_cnt += 1
-					# 	cv2.circle(frame, far, 4, [0, 0, 255], -1)
-					# # if finger_cnt > 0:
-					# finger_cnt = finger_cnt + 0
-					# cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
-					# cv2.line(frame,start,end,[255,0,0],2)
-					# cv2.circle(frame,far,5,[0,0,255],-1)
+					finger_cnt = 0
+					if  5 * np.pi / 180.0 <= ang and ang <= np.pi / 2:  		# Un dedo es aquello mayor de 5 grados y menor de 90
+						finger_cnt += 1
+						cv2.circle(frame, far, 4, [0, 0, 255], -1)
+					# if finger_cnt > 0:
+					finger_cnt = finger_cnt + 0
+					cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
+					cv2.line(frame,start,end,[255,0,0],2)
+					cv2.circle(frame,far,5,[0,0,255],-1)
 
 	cv2.imshow('Contours',frame)
 
