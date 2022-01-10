@@ -202,28 +202,19 @@ def convDefects(frame, fgmask):
 		cnt = np.copy(max)
 		cv2.drawContours(frame, [cnt], -1, (0,255,0),3)
 		# print(contours)
-		# print('a')
 		if (len(cnt) > 4):
-			# print('b')
-			# cnt = contours[0]
-			# print('c')
 			hull = cv2.convexHull(cnt, returnPoints=False)
-			# print('d')
 			hull.sort(True) 
 			# time.sleep(0.05)
-			# print('e')
 			defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
 			print('f')
 			if defects.__class__ == np.ndarray:
-				# print('a')
 				for i in range(len(defects)):
 					s,e,f,d = defects[i,0]
 					start = tuple(cnt[s][0])
 					end = tuple(cnt[e][0])
 					far = tuple(cnt[f][0])
-					# print('aa')
 					depth = d/256.0
-					# print('bb')
 					ang = angle(start,end,far)
 					# print(ang)
 					finger_cnt = 0
