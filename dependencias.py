@@ -17,7 +17,6 @@ def checkOrder(list):
 	ordered = True
 	for i in range(len(list)):
 		if i > 0:
-			# print(f'Comparo {list[i]} con {list[i-1]}')
 			if list[i] > list[i - 1]:
 				ordered = False
 	return ordered
@@ -29,17 +28,12 @@ def mysort(list):
 			for idx in range(iter_num):
 				if list[idx] < list[idx + 1]:
 					temp = np.ndarray(list[idx].shape,list[idx].dtype, list[idx].T, strides=list[idx].strides)
-					# temp = list[idx]
 					# print(f'tipo aux : {temp}')
 					temp = list[idx].copy()
 					list[idx] = list[idx+1]
 					list[idx+1] = temp
 					# print(f'temp list = {list}')
 	return list
-
-
-
-
 
 
 def angle(s,e,f):
@@ -72,8 +66,6 @@ def abrirCamara():
 
 	cap.release()
 	cv2.destroyAllWindows()
-
-
 
 
 def abrirVideo(video):
@@ -115,6 +107,7 @@ def generarCuadrado(cap):
 		cv2.imshow('frame',frame)
 		fgMask = backSub.apply(roi,learningRate=learning_rate)
 		cv2.imshow('Foreground Mask',fgMask)
+		boundingRect(roi)
 		convDefects(roi, fgMask)
 
 		keyboard = cv2.waitKey(1)
@@ -127,8 +120,6 @@ def generarCuadrado(cap):
 
 	cap.release()
 	cv2.destroyAllWindows()
-
-
 
 
 def crearVideo():
@@ -178,28 +169,28 @@ def substraccionFondo(cap):
 
 
 
-def contornos(frame):
-	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
-	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
-	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-	# Pinta el contarno detectado
-	cv2.drawContours(frame, contours, -1, (0,255,0),3)
-	# Mostramos el contorno
-	cv2.imshow('Contours',frame)
+# def contornos(frame):
+# 	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
+# 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
+# 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+# 	# Pinta el contarno detectado
+# 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
+# 	# Mostramos el contorno
+# 	cv2.imshow('Contours',frame)
 
 
 
 # La malla convexa incluye el contorno
-def mallaConvexa(frame, fgMask):
-	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
-	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
-	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-	cv2.drawContours(frame, contours, -1, (0,255,0),3)
-	hull = cv2.convexHull(contours[0])
-	cv2.drawContours(frame, [hull], 0, (255,0,0),3)
-	cv2.imshow('Contours',frame)
-  # keyboard = cv2.waitKey(0)
-  # cv2.destroyAllWindows()
+# def mallaConvexa(frame, fgMask):
+# 	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
+# 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
+# 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+# 	cv2.drawContours(frame, contours, -1, (0,255,0),3)
+# 	hull = cv2.convexHull(contours[0])
+# 	cv2.drawContours(frame, [hull], 0, (255,0,0),3)
+# 	cv2.imshow('Contours',frame)
+#   # keyboard = cv2.waitKey(0)
+#   # cv2.destroyAllWindows()
 
 
 
@@ -232,13 +223,13 @@ def convDefects(frame, fgmask):
 		cnt = np.copy(max)
 		cv2.drawContours(frame, [cnt], -1, (0,255,0),3)
 		# print(contours)
+		rect = cv2.boundingRect(cnt)
+		pt1 = (rect[0],rect[1])
+		pt2 = (rect[0]+rect[2],rect[1]+rect[3])
 		if (len(cnt) > 4):
 			hull = cv2.convexHull(cnt, returnPoints=False)
-			print(f'hull antes: {hull}')
-			# hull.sort()
 			mysort(hull)
-			print(f'hull despues: {hull}')
-			time.sleep(0.05)
+			# time.sleep(0.05)
 			defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
 			if defects.__class__ == np.ndarray:
 				for i in range(len(defects)):
@@ -248,18 +239,30 @@ def convDefects(frame, fgmask):
 					far = tuple(cnt[f][0])
 					depth = d/256.0
 					ang = angle(start,end,far)
-					print(ang)
+					# print(depth)
+					# print(pt2)q
+					vertical_size = (pt2[1] - pt1[1])
+					horizontal_size = (pt2[0] - pt1[0])
+					# print(f'vertical {vertical_size}')
+					# print(f'horizontal {horizontal_size}')
 					# Hay que tener en cuenta la profundidad. La profundidad es por asi decirlo el largo de los dedos
 					if  5 <= ang and ang <= 90:  		# Un dedo es aquello mayor de 5 grados y menor de 90
-						print('DEDO')
-						finger_cnt += 1
-						cv2.circle(frame, far, 4, [0, 0, 255], -1)
-					if finger_cnt > 0:
-						finger_cnt = finger_cnt + 1
+						# print('DEDO')
+						if depth > vertical_size / 5:
+						# if depth < 9999999999:
+							finger_cnt += 1
+							cv2.circle(frame, far, 4, [0, 0, 255], -1)
+						elif depth > horizontal_size / 9:
+						# if depth < 9999999999:
+							finger_cnt += 1
+							cv2.circle(frame, far, 4, [0, 0, 255], -1)
+				if finger_cnt > 0:
+					finger_cnt = finger_cnt + 1
 					cv2.line(frame,start,end,[255,0,0],2)
 					cv2.circle(frame,far,5,[0,0,255],-1)
-
 				print('Dedos: ', finger_cnt)
+		# cv2.rectangle(frame,pt1,pt2,(0,0,255),3)
+		
 	cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
 	cv2.imshow('Contours',frame)
 
