@@ -93,8 +93,8 @@ def generarCuadrado(cap):
 	if not cap.isOpened:
 		print ("Unable to open file")
 		exit(0)
-	pt1 = (400,100)
-	pt2 = (600,300)
+	pt1 = (390,90)
+	pt2 = (590,310)
 
 	learning_rate = -1
 	while (True):
@@ -107,7 +107,7 @@ def generarCuadrado(cap):
 		cv2.imshow('frame',frame)
 		fgMask = backSub.apply(roi,learningRate=learning_rate)
 		cv2.imshow('Foreground Mask',fgMask)
-		boundingRect(roi)
+		#boundingRect(roi)
 		convDefects(roi, fgMask)
 
 		keyboard = cv2.waitKey(1)
@@ -174,7 +174,7 @@ def boundingRect(frame):
 	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
 	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
 	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-	cv2.drawContours(frame, contours, -1, (0,255,0),3)
+	#cv2.drawContours(frame, contours, -1, (0,255,0),3)
 	rect = cv2.boundingRect(contours[0])
 	pt1 = (rect[0],rect[1])
 	pt2 = (rect[0]+rect[2],rect[1]+rect[3])
@@ -203,8 +203,8 @@ def convDefects(frame, fgmask):
 		if (len(cnt) > 4):
 			hull = cv2.convexHull(cnt, returnPoints=False)
 			mysort(hull)
-			# time.sleep(0.05)
-			defects = cv2.convexityDefects(cnt,hull)         # <----- Falla
+			time.sleep(0.02)
+			defects = cv2.convexityDefects(cnt,hull)
 			if defects.__class__ == np.ndarray:
 				for i in range(len(defects)):
 					s,e,f,d = defects[i,0]
@@ -215,21 +215,30 @@ def convDefects(frame, fgmask):
 					ang = angle(start,end,far)
 					vertical_size = (pt2[1] - pt1[1])
 					horizontal_size = (pt2[0] - pt1[0])
+					print(vertical_size)
+					print(horizontal_size)
+					
 					# Hay que tener en cuenta la profundidad. La profundidad es por asi decirlo el largo de los dedos
 					if  5 <= ang and ang <= 90:  		# Un dedo es aquello mayor de 5 grados y menor de 90
 						# print('DEDO')
-						if depth > vertical_size / 5:
+						#if depth > vertical_size / 3:
+						if depth > 60:
 							finger_cnt += 1
 							cv2.circle(frame, far, 4, [0, 0, 255], -1)
-						elif depth > horizontal_size / 9:
-							finger_cnt += 1
-							cv2.circle(frame, far, 4, [0, 0, 255], -1)
+						#elif depth > horizontal_size / 9:
+						#	finger_cnt += 1
+						#	cv2.circle(frame, far, 4, [0, 0, 255], -1)
 				if finger_cnt > 0:
 					finger_cnt = finger_cnt + 1
 					cv2.line(frame,start,end,[255,0,0],2)
-					cv2.circle(frame,far,5,[0,0,255],-1)
+					# cv2.circle(frame,far,5,[0,0,255],-1)
+				elif finger_cnt == 0:
+					if vertical_size / horizontal_size > 1.5:
+						finger_cnt = finger_cnt + 1
+					elif horizontal_size / vertical_size > 1.2:
+						finger_cnt = finger_cnt + 1
 				print('Dedos: ', finger_cnt)
-		# cv2.rectangle(frame,pt1,pt2,(0,0,255),3)
+		cv2.rectangle(frame,pt1,pt2,(0,0,255),3)
 		
 	cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
 	cv2.imshow('Contours',frame)
