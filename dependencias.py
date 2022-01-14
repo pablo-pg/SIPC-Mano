@@ -170,8 +170,8 @@ def convDefects(frame, fgmask):
 					far = tuple(cnt[f][0])
 					depth = d/256.0
 					ang = angle(start,end,far)
-					vertical_size = (pt2[1] - pt1[1])
-					horizontal_size = (pt2[0] - pt1[0])
+					vertical_size = abs((pt2[1] - pt1[1]))
+					horizontal_size = abs((pt2[0] - pt1[0]))
 					
 					# Hay que tener en cuenta la profundidad. La profundidad es por asi decirlo el largo de los dedos
 					if  ang <= 90:  		# Un dedo es aquello mayor de 5 grados y menor de 90
@@ -182,12 +182,19 @@ def convDefects(frame, fgmask):
 				if finger_cnt > 0:
 					finger_cnt = finger_cnt + 1
 					distancia_dedos = np.sqrt((far[0] - start[0])**2 + (far[1] - start[1])**2)
-					# Gesto de la paz
-					#  and ang <= 60 and vertical_size/(far - start) > 1.2
-					if finger_cnt == 2 and vertical_size / distancia_dedos > 1.2:
-						print(far[1] - pt1[1])
-						if pt1[1] - far[1] < 5 and pt1[1] - start[1] < 5:
-							#print(distancia_dedos)
+	# Gesto de la paz
+					# end es el dedo de la izquierda
+					# start es el dedo de la derecha
+					# cv2.circle(frame, pt1, 10, [0, 0, 0], -1)
+					cv2.circle(frame, start, 10, [255, 255, 0], -1)
+					cv2.circle(frame, end, 10, [255, 255, 255], -1)
+					distY_d_izq_esq_sup_izq = abs(end[1] - pt1[1]) / vertical_size * 100
+					distY_d_der_esq_sup_izq = abs(start[1] - pt1[1]) / vertical_size * 100
+					distX_d_izq_esq_sup_izq = abs(end[0] - pt1[0]) / horizontal_size * 100
+					distX_d_der_esq_sup_izq = abs(start[0] - pt1[0]) / horizontal_size * 100
+					# print(f'{distY_d_izq_esq_sup_izq}  -  {distY_d_der_esq_sup_izq}  -  {distX_d_izq_esq_sup_izq}')
+					if finger_cnt == 2 and vertical_size > horizontal_size * 1.5:
+						if distY_d_izq_esq_sup_izq < 11 and distY_d_der_esq_sup_izq < 11 and distX_d_izq_esq_sup_izq < 25:
 							cv2.putText(frame, str("Paz hermano"), (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0) , 2, cv2.LINE_AA)
 
 					# Gesto satánico
