@@ -22,7 +22,6 @@ def checkOrder(list):
 	return ordered
 
 def mysort(list):
-	print(f' TAMAÑO {len(list[1])} y esta ordenado? {checkOrder(list)}')
 	while not checkOrder(list):
 		for iter_num in range(len(list)-1,0,-1):
 			for idx in range(iter_num):
@@ -107,7 +106,6 @@ def generarCuadrado(cap):
 		cv2.imshow('frame',frame)
 		fgMask = backSub.apply(roi,learningRate=learning_rate)
 		cv2.imshow('Foreground Mask',fgMask)
-		#boundingRect(roi)
 		convDefects(roi, fgMask)
 
 		keyboard = cv2.waitKey(1)
@@ -144,52 +142,11 @@ def crearVideo():
 	cv2.destroyAllWindows()
 
 
-# Hecho
-def substraccionFondo(cap):
-	learning_rate = -1
-	if not cap.isOpened:
-		print ("Unable to open cam")
-		exit(0)
-
-	while (True):
-		ret,frame=cap.read()
-		if not ret:
-			exit(0)
-		fgMask = backSub.apply(frame,learningRate=learning_rate)
-		cv2.imshow('frame',frame)
-		cv2.imshow('Foreground Mask',fgMask)
-		keyboard = cv2.waitKey(1)
-		if keyboard & 0xFF == ord('q'):
-			break
-		if keyboard & 0xFF == ord('s'):
-			learning_rate = 0
-
-	cap.release()
-	cv2.destroyAllWindows()
-
-
-
-# Tambien incluye el contorno
-def boundingRect(frame):
-	gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
-	ret,bw = cv2.threshold(gray,127,255,cv2.THRESH_BINARY)
-	contours, hierarchy = cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-	#cv2.drawContours(frame, contours, -1, (0,255,0),3)
-	rect = cv2.boundingRect(contours[0])
-	pt1 = (rect[0],rect[1])
-	pt2 = (rect[0]+rect[2],rect[1]+rect[3])
-	cv2.rectangle(frame,pt1,pt2,(0,0,255),3)
-	cv2.imshow('Contours',frame)
-	# keyboard = cv2.waitKey(0)
-	# cv2.destroyAllWindows()
-
-
 # Incluye el contorno y la malla convexa
 def convDefects(frame, fgmask):
-	# fgmask = cv2.blur(fgmask, (8,8))
 	finger_cnt = 0
 	contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-	print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+	# print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
 	if (len(contours) > 1):
 		max = np.copy(contours[0]) 
 		for i in contours:
@@ -215,33 +172,37 @@ def convDefects(frame, fgmask):
 					ang = angle(start,end,far)
 					vertical_size = (pt2[1] - pt1[1])
 					horizontal_size = (pt2[0] - pt1[0])
-					print(vertical_size)
-					print(horizontal_size)
 					
 					# Hay que tener en cuenta la profundidad. La profundidad es por asi decirlo el largo de los dedos
-					if  5 <= ang and ang <= 90:  		# Un dedo es aquello mayor de 5 grados y menor de 90
-						# print('DEDO')
-						#if depth > vertical_size / 3:
-						if depth > 60:
+					if  ang <= 90:  		# Un dedo es aquello mayor de 5 grados y menor de 90
+						if depth > 50:
 							finger_cnt += 1
 							cv2.circle(frame, far, 4, [0, 0, 255], -1)
-						#elif depth > horizontal_size / 9:
-						#	finger_cnt += 1
-						#	cv2.circle(frame, far, 4, [0, 0, 255], -1)
+							cv2.line(frame,start,end,[255,0,0],2)
 				if finger_cnt > 0:
 					finger_cnt = finger_cnt + 1
-					cv2.line(frame,start,end,[255,0,0],2)
-					# cv2.circle(frame,far,5,[0,0,255],-1)
+					distancia_dedos = np.sqrt((far[0] - start[0])**2 + (far[1] - start[1])**2)
+					# Gesto de la paz
+					#  and ang <= 60 and vertical_size/(far - start) > 1.2
+					if finger_cnt == 2 and vertical_size / distancia_dedos > 1.2:
+						print(far[1] - pt1[1])
+						if pt1[1] - far[1] < 5 and pt1[1] - start[1] < 5:
+							#print(distancia_dedos)
+							cv2.putText(frame, str("Paz hermano"), (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0) , 2, cv2.LINE_AA)
+
+					# Gesto satánico
+					if True:
+						x = 2
 				elif finger_cnt == 0:
 					if vertical_size / horizontal_size > 1.5:
 						finger_cnt = finger_cnt + 1
 					elif horizontal_size / vertical_size > 1.2:
 						finger_cnt = finger_cnt + 1
-				print('Dedos: ', finger_cnt)
 		cv2.rectangle(frame,pt1,pt2,(0,0,255),3)
 		
 	cv2.putText(frame, str(finger_cnt), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0) , 2, cv2.LINE_AA)
 	cv2.imshow('Contours',frame)
 
-		
+
+# Link pa dibujar  https://dev.to/amarlearning/finger-detection-and-tracking-using-opencv-and-python-586m
 
