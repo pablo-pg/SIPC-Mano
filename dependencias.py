@@ -240,6 +240,3 @@ def convDefects(frame, fgmask, todos_puntos, imprimir_puntos):
 	cv2.imshow('Contours',frame)
 	return nuevo_punto
 
-
-# Link pa dibujar  https://dev.to/amarlearning/finger-detection-and-tracking-using-opencv-and-python-586m
-
