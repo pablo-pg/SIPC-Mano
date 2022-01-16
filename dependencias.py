@@ -214,15 +214,17 @@ def convDefects(frame, fgmask):
 					distY_d_der_esq_sup_izq = abs(start[1] - pt1[1]) / vertical_size * 100
 					distX_d_izq_esq_sup_izq = abs(end[0] - pt1[0]) / horizontal_size * 100
 					distX_d_der_esq_sup_izq = abs(start[0] - pt1[0]) / horizontal_size * 100
-					# print(f'{distY_d_izq_esq_sup_izq}  -  {distY_d_der_esq_sup_izq}  -  {distX_d_izq_esq_sup_izq}')
+					print(f'{distY_d_izq_esq_sup_izq}  -  {distY_d_der_esq_sup_izq}  -  {distX_d_izq_esq_sup_izq} - {distX_d_der_esq_sup_izq}')
 	# Gesto de la paz
 					if finger_cnt == 2 and vertical_size > horizontal_size * 1.5:
 						if distY_d_izq_esq_sup_izq < 11 and distY_d_der_esq_sup_izq < 11 and distX_d_izq_esq_sup_izq < 25:
 							cv2.putText(frame, str("Paz hermano"), (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0) , 2, cv2.LINE_AA)
 
-					# Gesto satánico
-					if True:
-						x = 2
+	# Gesto satánico
+					if finger_cnt == 3:
+						if distY_d_izq_esq_sup_izq < 2 and distY_d_der_esq_sup_izq < 25 and distX_d_izq_esq_sup_izq < 45 and distX_d_der_esq_sup_izq < 100:
+							if distY_d_izq_esq_sup_izq >= 0 and distY_d_der_esq_sup_izq > 10 and distX_d_izq_esq_sup_izq > 15 and distX_d_der_esq_sup_izq > 61:
+								cv2.putText(frame, str("Rock & Roll"), (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0) , 2, cv2.LINE_AA)
 				# En el caso de que no hayan defectos de convexidad, es posible que se esté levantando solo un dedo.
 				elif finger_cnt == 0:
 					# En el caso de levantar el dedo índice, corazón, anular o meñique
