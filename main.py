@@ -13,7 +13,7 @@ mode = '1'
 #   else:
 #     print("\n\nOpcion incorrecta.\n")
 
-print("Comandos:\n  Pulse 's' para establecer el learning rate a 0\n  Pulse 'a' para que establecer el learning rate a -1\n  Pulse 'p' para empezar a pintar(funciona con dos dedos levantaods)\n  Pulse 'b' para borrar lo pintado")
+print("Comandos:\n  Pulse 's' para establecer el learning rate a 0\n  Pulse 'a' para que establecer el learning rate a -1\n  Pulse 'p' para empezar a pintar(funciona con dos dedos levantaods)\n  Pulse 'b' para borrar lo pintado\n  Pulse 'q' para cerrar el programa")
 if mode == '0':
   dependencias.abrirCamara()
 elif mode == '1':
