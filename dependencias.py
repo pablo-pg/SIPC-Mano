@@ -45,7 +45,7 @@ def angle(s,e,f):
 # En el caso de que el usuario quiera usar el programa con su propia camara.
 # Este metodo se encarga de la gestion de la camara unicamente.
 def abrirCamara():
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(1)
 	if not cap.isOpened:
 		print ("Unable to open cam")
 		exit(0)
@@ -241,7 +241,7 @@ def convDefects(frame, fgmask, todos_puntos, imprimir_puntos):
 	# En el caso de que este activado el modo pintar, se imprimen todos los puntos almacenados
 	if (imprimir_puntos == True):
 		if nuevo_punto.__class__ == tuple:
-			if nuevo_punto[0].__class__ == np.int32:
+			if nuevo_punto[0].__class__ == np.int32 or nuevo_punto[0].__class__ == np.intc:
 				todos_puntos.append(nuevo_punto)
 		for i in todos_puntos:
 			cv2.circle(frame, i, 10, [150, 55, 50], -1)
